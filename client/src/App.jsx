@@ -1,9 +1,10 @@
 import { createContext, lazy, Suspense, useCallback, useContext, useEffect, useState } from 'react';
+import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'framer-motion';
 import { Link, NavLink, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
-  ArrowRight, BarChart3, Check, CheckCircle2,
+  ArrowRight, Backpack, BarChart3, Check, CheckCircle2, Droplets, Headphones,
   ChevronDown, Clock3, Compass, FileSearch, Filter, HeartHandshake, ImagePlus,
-  LayoutDashboard, MapPin, Menu, PackageCheck, Plus, Search, ShieldCheck,
+  KeyRound, LayoutDashboard, MapPin, Menu, PackageCheck, Plus, Search, ShieldCheck, Smartphone,
   Sparkles, TrendingUp, UploadCloud, X,
 } from 'lucide-react';
 import { analyticsApi, getErrorMessage, reportApi } from './api.js';
@@ -54,8 +55,8 @@ function Layout({ children }) {
     <ToastContext.Provider value={notify}>
       <div className="app-shell">
         <header className="topbar">
-          <Link className="brand" to="/" aria-label="BLUE home">
-            <span className="brand-mark">B</span><span>BLUE</span><span className="brand-divider" /><span className="brand-subtitle">Campus community</span>
+          <Link className="brand" to="/" aria-label="LOFO home">
+            <span className="brand-mark">L</span><span>LOFO</span><span className="brand-divider" /><span className="brand-subtitle">Campus community</span>
           </Link>
           <button className="icon-button mobile-menu" aria-label="Toggle navigation" onClick={() => setMenuOpen(!menuOpen)}>
             {menuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -76,7 +77,7 @@ function Layout({ children }) {
           {children}
         </main>
         <footer className="footer">
-          <Link className="footer-brand" to="/"><span className="brand-mark small">B</span> BLUE</Link>
+          <Link className="footer-brand" to="/"><span className="brand-mark small">L</span> LOFO</Link>
           <span>Good things find their way back.</span>
           <Link to="/reports">Explore campus reports <ArrowRight size={14} /></Link>
         </footer>
@@ -160,21 +161,15 @@ function LandingPage() {
       <section className="hero">
         <div className="hero-copy">
           <div className="hero-kicker"><Sparkles size={15} /> A little help goes a long way</div>
-          <h1>Lost something?<br /><span>Let’s bring it home.</span></h1>
-          <p>Campus life moves fast. BLUE helps our community reconnect with the things that matter — one found item at a time.</p>
+          <h1>Lost Something?<br /><span>Find It with LOFO.</span></h1>
+          <p>A smarter way to reconnect people with their lost belongings.</p>
           <div className="hero-actions">
-            <Link to="/report/lost" className="button button-primary button-large">I lost something <ArrowRight size={17} /></Link>
-            <Link to="/report/found" className="button button-white button-large"><Plus size={17} /> I found something</Link>
+            <Link to="/report/lost" className="button button-primary button-large">Report Lost Item <ArrowRight size={17} /></Link>
+            <Link to="/report/found" className="button button-white button-large"><Plus size={17} /> Report Found Item</Link>
           </div>
-          <div className="hero-trust"><div className="avatar-stack"><span>J</span><span>M</span><span>A</span><span><HeartHandshake size={14} /></span></div><span>Good neighbors. Happier endings.</span></div>
+          <div className="hero-trust"><span className="hero-trust-icon"><ShieldCheck size={15} /></span><span>Built for your campus community</span></div>
         </div>
-        <div className="hero-art" aria-hidden="true">
-          <div className="hero-orbit orbit-one" /><div className="hero-orbit orbit-two" />
-          <div className="hero-spark spark-one">✦</div><div className="hero-spark spark-two">✦</div>
-          <div className="hero-card hero-card-main"><div className="item-illustration hoodie-art"><div className="hoodie-hood" /><div className="hoodie-body" /><div className="hoodie-pocket" /></div><div className="hero-item-caption"><span className="item-tag"><span className="status-dot lost-dot" /> Community reports</span><strong>Every clue matters</strong><small><MapPin size={13} /> Shared across campus</small></div></div>
-          <div className="hero-card hero-card-match"><span className="match-check"><Sparkles size={14} /></span><div><strong>Match suggestions</strong><small>Based on active reports</small></div></div>
-          <div className="floating-note"><HeartHandshake size={17} /><span>Bringing campus together.</span></div>
-        </div>
+        <HeroScene />
       </section>
 
       <section className="stats-strip">
@@ -192,7 +187,7 @@ function LandingPage() {
         <div className="section-title"><div><p className="eyebrow">Simple by design</p><h2>Three steps. One happy ending.</h2></div><Link to="/reports" className="text-link">Browse all reports <ArrowRight size={15} /></Link></div>
         <div className="steps-grid">
           <Step number="01" icon={FileSearch} title="Share the details" text="Post what you’ve lost or found. A few clues are all it takes to get started." />
-          <Step number="02" icon={Sparkles} title="Find your match" text="BLUE compares reports and surfaces the closest matches from around campus." />
+          <Step number="02" icon={Sparkles} title="Find your match" text="LOFO compares reports and surfaces the closest matches from around campus." />
           <Step number="03" icon={HeartHandshake} title="Make the reunion" text="Connect with your campus community and mark the item safely reunited." />
         </div>
       </section>
@@ -239,7 +234,85 @@ function hasOverviewCounts(input) {
 }
 
 function Stat({ number, label, detail, icon: Icon, tone = 'blue', compact = false }) {
-  return <div className={`stat-card ${compact ? 'compact' : ''}`}><span className={`stat-icon ${tone}`}><Icon size={18} /></span><div className="stat-copy"><strong>{number.toLocaleString()}</strong><span>{label}</span>{!compact && <small>{detail}</small>}</div></div>;
+  const reduceMotion = useReducedMotion();
+  return <motion.div className={`stat-card ${compact ? 'compact' : ''}`} whileHover={reduceMotion ? undefined : { y: -4, rotateX: 2, rotateY: -2, scale: 1.015 }} transition={{ type: 'spring', stiffness: 260, damping: 20 }} style={{ transformPerspective: 900 }}><span className={`stat-icon ${tone}`}><Icon size={18} /></span><div className="stat-copy"><AnimatedNumber value={number} /><span>{label}</span>{!compact && <small>{detail}</small>}</div></motion.div>;
+}
+
+function AnimatedNumber({ value }) {
+  const reduceMotion = useReducedMotion();
+  const source = useMotionValue(0);
+  const spring = useSpring(source, { stiffness: 90, damping: 22, restDelta: 0.5 });
+  const rounded = useTransform(spring, (current) => Math.round(current).toLocaleString());
+
+  useEffect(() => {
+    if (typeof value !== 'number') return;
+    if (reduceMotion) spring.jump(value);
+    else source.set(value);
+  }, [value, reduceMotion, source, spring]);
+
+  if (typeof value !== 'number') return <strong>{value}</strong>;
+  return <motion.strong>{rounded}</motion.strong>;
+}
+
+function HeroScene() {
+  const reduceMotion = useReducedMotion();
+  const pointerX = useMotionValue(0);
+  const pointerY = useMotionValue(0);
+  const rotateY = useSpring(useTransform(pointerX, [-0.5, 0.5], [-8, 8]), { stiffness: 90, damping: 24 });
+  const rotateX = useSpring(useTransform(pointerY, [-0.5, 0.5], [6, -6]), { stiffness: 90, damping: 24 });
+
+  const handlePointerMove = (event) => {
+    if (reduceMotion) return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    pointerX.set((event.clientX - bounds.left) / bounds.width - 0.5);
+    pointerY.set((event.clientY - bounds.top) / bounds.height - 0.5);
+  };
+  const resetPointer = () => {
+    pointerX.set(0);
+    pointerY.set(0);
+  };
+  const float = (distance) => reduceMotion
+    ? undefined
+    : { y: [0, -distance, 0], rotateZ: [0, 2, 0] };
+  const floatTransition = (duration, delay = 0) => ({
+    duration, delay, repeat: Infinity, ease: 'easeInOut',
+  });
+
+  return (
+    <motion.div
+      className="hero-art"
+      aria-hidden="true"
+      onPointerMove={handlePointerMove}
+      onPointerLeave={resetPointer}
+      style={{ rotateX, rotateY, transformPerspective: 900, transformStyle: 'preserve-3d' }}
+    >
+      <div className="hero-orbit orbit-one" /><div className="hero-orbit orbit-two" />
+      <div className="scene-glow" />
+      <motion.div className="hero-object object-backpack" animate={float(10)} transition={floatTransition(5.4)}>
+        <Backpack size={57} strokeWidth={1.35} /><span>BACKPACK</span>
+      </motion.div>
+      <motion.div className="hero-object object-bottle" animate={float(12)} transition={floatTransition(4.8, 0.4)}>
+        <div className="bottle-visual"><span className="bottle-cap" /><span className="bottle-shine" /><Droplets size={19} /></div><span>WATER BOTTLE</span>
+      </motion.div>
+      <motion.div className="hero-object object-headphones" animate={float(9)} transition={floatTransition(5.7, 0.8)}>
+        <Headphones size={54} strokeWidth={1.4} /><span>HEADPHONES</span>
+      </motion.div>
+      <motion.div className="hero-object object-keys" animate={float(8)} transition={floatTransition(4.9, 0.2)}>
+        <KeyRound size={39} strokeWidth={1.45} /><span>KEYS</span>
+      </motion.div>
+      <motion.div className="hero-object object-phone" animate={float(11)} transition={floatTransition(5.2, 0.6)}>
+        <Smartphone size={47} strokeWidth={1.4} /><span>PHONE</span>
+      </motion.div>
+      <div className="hero-center-card">
+        <span className="hero-center-mark"><span className="brand-mark">L</span></span>
+        <span className="hero-center-title">One campus.<br />Things find their way.</span>
+        <span className="hero-center-rule"><i /></span>
+        <span className="hero-center-caption"><span className="online-dot" /> LOST &amp; FOUND, RECONNECTED</span>
+      </div>
+      <div className="scene-coordinate coordinate-top">LOFO / CAMPUS NETWORK</div>
+      <div className="scene-coordinate coordinate-bottom"><span>01</span> COMMUNITY FIRST</div>
+    </motion.div>
+  );
 }
 
 function Step({ number, icon: Icon, title, text }) {
@@ -328,9 +401,10 @@ function ReportRow({ report, onClick }) {
 }
 
 function PotentialMatch({ match, onClick }) {
+  const reduceMotion = useReducedMotion();
   const candidate = match.report ?? match;
   const score = Math.round(Number(match.score ?? 0) * 100);
-  return <button className="potential-match" onClick={onClick}><span className="match-thumb"><HeartHandshake size={17} /></span><span className="potential-copy"><strong>{candidate.itemName}</strong><small><MapPin size={12} /> {candidate.location || 'Campus'} <i /> {candidate.category || 'Item'}</small></span><span className="score-pill">{score}%</span></button>;
+  return <motion.button className="potential-match" onClick={onClick} whileHover={reduceMotion ? undefined : { y: -3, rotateY: -1 }} transition={{ type: 'spring', stiffness: 280, damping: 22 }}><span className="match-thumb"><HeartHandshake size={17} /></span><span className="potential-copy"><strong>{candidate.itemName}</strong><small><MapPin size={12} /> {candidate.location || 'Campus'} <i /> {candidate.category || 'Item'}</small></span><span className="score-pill">{score}%</span></motion.button>;
 }
 
 const categoryOptions = ['Accessories', 'Bags', 'Books', 'Clothing', 'Electronics', 'Keys', 'Other', 'Wallets'];
@@ -460,13 +534,15 @@ function ReportsPage() {
 }
 
 function ReportCard({ report, onClick }) {
+  const reduceMotion = useReducedMotion();
   const isLost = report.type === 'LOST';
-  return <article className="report-card"><div className={`card-art ${isLost ? 'card-art-lost' : 'card-art-found'}`}><span className={`type-badge ${isLost ? 'badge-lost' : 'badge-found'}`}>{isLost ? 'Lost item' : 'Found item'}</span><span className="card-art-icon">{isLost ? <Search size={25} /> : <PackageCheck size={25} />}</span><span className={`card-status ${report.status === 'REUNITED' ? 'status-reunited' : ''}`}><span className="status-dot" />{report.status === 'REUNITED' ? 'Reunited' : 'Active'}</span></div><div className="report-card-content"><span className="card-category">{report.category || 'Other'}{report.color ? ` · ${report.color}` : ''}</span><h3>{report.itemName}</h3><p className="card-description">{report.description || 'No description provided.'}</p><div className="card-meta"><span><MapPin size={14} />{report.location}</span><span><Clock3 size={14} />{displayDate(report.date, report.time)}</span></div><button className="card-link" onClick={onClick}>View details <ArrowRight size={15} /></button></div></article>;
+  return <motion.article className="report-card" initial={reduceMotion ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} whileHover={reduceMotion ? undefined : { y: -4, rotateX: 1.5 }} transition={{ type: 'spring', stiffness: 240, damping: 22 }} style={{ transformPerspective: 900 }}><div className={`card-art ${isLost ? 'card-art-lost' : 'card-art-found'}`}><span className={`type-badge ${isLost ? 'badge-lost' : 'badge-found'}`}>{isLost ? 'Lost item' : 'Found item'}</span><span className="card-art-icon">{isLost ? <Search size={25} /> : <PackageCheck size={25} />}</span><span className={`card-status ${report.status === 'REUNITED' ? 'status-reunited' : ''}`}><span className="status-dot" />{report.status === 'REUNITED' ? 'Reunited' : 'Active'}</span></div><div className="report-card-content"><span className="card-category">{report.category || 'Other'}{report.color ? ` · ${report.color}` : ''}</span><h3>{report.itemName}</h3><p className="card-description">{report.description || 'No description provided.'}</p><div className="card-meta"><span><MapPin size={14} />{report.location}</span><span><Clock3 size={14} />{displayDate(report.date, report.time)}</span></div><button className="card-link" onClick={onClick}>View details <ArrowRight size={15} /></button></div></motion.article>;
 }
 
 function MatchesPage() {
   const { id } = useParams();
   const notify = useToast();
+  const reduceMotion = useReducedMotion();
   const [source, setSource] = useState(null);
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -517,14 +593,15 @@ function MatchesPage() {
         <div className="match-cards">{matches.map((match, index) => {
           const candidate = match.report ?? match;
           const score = Math.round(Number(match.score ?? 0) * 100);
+          const imageUrl = candidate.imageUrl ?? candidate.image ?? candidate.photoUrl ?? candidate.photo;
           const why = reasons(candidate);
-          return <article className="match-result-card" key={reportId(candidate) || index}>
-            <div className="match-result-top"><span className="match-item-symbol"><HeartHandshake size={21} /></span><span className="match-confidence"><strong>{score}%</strong><small>match</small></span></div>
+          return <motion.article className="match-result-card" key={reportId(candidate) || index} initial={reduceMotion ? false : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} whileHover={reduceMotion ? undefined : { y: -5, rotateX: 1.5 }} transition={{ type: 'spring', stiffness: 220, damping: 22, delay: index * 0.05 }} style={{ transformPerspective: 900 }}>
+            <div className="match-result-top"><span className="match-item-symbol">{imageUrl ? <img src={imageUrl} alt={`${candidate.itemName} item`} /> : <HeartHandshake size={21} />}</span><span className="match-confidence"><strong>{score}%</strong><small>match</small><span className="score-meter"><motion.i initial={reduceMotion ? false : { scaleX: 0 }} animate={{ scaleX: Math.max(0, Math.min(100, score)) / 100 }} transition={{ duration: reduceMotion ? 0 : 0.7, delay: reduceMotion ? 0 : index * 0.06, ease: 'easeOut' }} /></span></span></div>
             <span className="card-category">{candidate.type === 'FOUND' ? 'Found item' : 'Lost item'}{candidate.category ? ` · ${candidate.category}` : ''}</span><h3>{candidate.itemName}</h3><p className="match-description">{candidate.description || 'No additional description.'}</p>
             <div className="match-details"><span><MapPin size={14} />{candidate.location || 'Location not listed'}</span><span><Clock3 size={14} />{displayDate(candidate.date, candidate.time)}</span>{candidate.color && <span><span className="color-dot" />{candidate.color}</span>}</div>
             <div className="reasons-block"><strong><Sparkles size={14} /> Why it might match</strong>{why.length ? <div className="reason-tags">{why.map((reason) => <span key={reason}><Check size={12} />{reason}</span>)}</div> : <p>The matching service identified this as a possible match based on the report details.</p>}</div>
             <button className="button button-primary reunion-button" onClick={() => markReunited(match)} disabled={Boolean(updating)}>{updating === reportId(candidate) ? <><span className="button-spinner" /> Updating…</> : <><HeartHandshake size={16} /> Mark reunited</>}</button>
-          </article>;
+          </motion.article>;
         })}</div>
       </section> : loaded ? <EmptyState title="No matches yet" description="We couldn’t find an active report that matches. We’ll keep your report on the board so the community can help." action={<Link to="/reports" className="button button-outline">Browse all reports</Link>} /> : null}
     </> : null}
@@ -532,6 +609,7 @@ function MatchesPage() {
 }
 
 function AnalyticsPage() {
+  const reduceMotion = useReducedMotion();
   const [overview, setOverview] = useState(null);
   const [hotspots, setHotspots] = useState([]);
   const [itemData, setItemData] = useState([]);
@@ -573,14 +651,14 @@ function AnalyticsPage() {
         <div className="analytics-period"><span className="period-icon"><TrendingUp size={17} /></span><span><strong>Community powered</strong><small>Based on live campus reports</small></span></div>
       </div>
       <div className="analytics-grid">
-        <section className="panel chart-panel"><PanelHeading title="Lost vs. found" subtitle="Report totals from the campus community" />{missingMetrics ? <EmptyState title="Analytics are warming up" description="Overview data will appear when the API returns report totals." /> : <><div className="chart-area"><Suspense fallback={<LoadingState label="Loading chart…" />}><AnalyticsCharts variant="trend" chartData={chartData} /></Suspense></div><div className="chart-legend">{chartData.map((item) => <span key={item.name}><i style={{ backgroundColor: item.fill }} />{item.name}<strong>{item.count}</strong></span>)}</div></>}</section>
-        <section className="panel reunited-panel"><PanelHeading title="Reunited with care" subtitle="Every reunion starts with a report" /><div className="reunited-content"><div className="reunited-chart"><Suspense fallback={<span className="chart-loading" />}><AnalyticsCharts variant="reunited" totals={totals} /></Suspense><div className="chart-center"><strong>{reunitedRate}%</strong><small>reunited</small></div></div><div className="reunited-total"><strong>{totals.reunited.toLocaleString()}</strong><span>items found their way home</span><div className="reunited-trend"><HeartHandshake size={14} /> Campus-wide impact</div></div></div></section>
+        <section className="panel chart-panel"><PanelHeading title="Lost vs. found" subtitle="Report totals from the campus community" />{missingMetrics ? <EmptyState title="Analytics are warming up" description="Overview data will appear when the API returns report totals." /> : <><div className="chart-area"><Suspense fallback={<LoadingState label="Loading chart…" />}><AnalyticsCharts variant="trend" chartData={chartData} reduceMotion={reduceMotion} /></Suspense></div><div className="chart-legend">{chartData.map((item) => <span key={item.name}><i style={{ backgroundColor: item.fill }} />{item.name}<strong>{item.count}</strong></span>)}</div></>}</section>
+        <section className="panel reunited-panel"><PanelHeading title="Reunited with care" subtitle="Every reunion starts with a report" /><div className="reunited-content"><div className="reunited-chart"><Suspense fallback={<span className="chart-loading" />}><AnalyticsCharts variant="reunited" totals={totals} reduceMotion={reduceMotion} /></Suspense><div className="chart-center"><strong>{reunitedRate}%</strong><small>reunited</small></div></div><div className="reunited-total"><strong>{totals.reunited.toLocaleString()}</strong><span>items found their way home</span><div className="reunited-trend"><HeartHandshake size={14} /> Campus-wide impact</div></div></div></section>
       </div>
       <div className="ranking-grid">
         <section className="panel ranking-panel"><PanelHeading title="Most reported items" subtitle="Top 3 from item analytics" action={<span className="ranking-icon item-rank-icon"><PackageCheck size={16} /></span>} />{topItems.length ? <ol className="rank-list">{topItems.map((item, index) => <li key={`${item.name}-${index}`}><span className={`rank-number rank-${index + 1}`}>0{index + 1}</span><span className="rank-label">{item.name}</span><span className="rank-track"><i style={{ width: `${Math.max(14, (item.count / Math.max(topItems[0].count, 1)) * 100)}%` }} /></span><strong>{item.count}</strong></li>)}</ol> : <p className="muted-copy compact-copy">Item trends will appear when analytics data is available.</p>}</section>
         <section className="panel ranking-panel"><PanelHeading title="Campus hotspots" subtitle="Locations with the most activity" action={<span className="ranking-icon map-rank-icon"><MapPin size={16} /></span>} />{topSpots.length ? <ol className="rank-list">{topSpots.map((item, index) => <li key={`${item.name}-${index}`}><span className={`rank-number rank-${index + 1}`}>0{index + 1}</span><span className="rank-label">{item.name}</span><span className="rank-track"><i style={{ width: `${Math.max(14, (item.count / Math.max(topSpots[0].count, 1)) * 100)}%` }} /></span><strong>{item.count}</strong></li>)}</ol> : <p className="muted-copy compact-copy">Location trends will appear when analytics data is available.</p>}</section>
       </div>
-      <p className="analytics-footnote"><ShieldCheck size={15} /> Analytics are calculated from reports in the BLUE service. {reports.length ? `Currently showing ${reports.length} loaded report records.` : ''}</p>
+      <p className="analytics-footnote"><ShieldCheck size={15} /> Analytics are calculated from reports in the LOFO service. {reports.length ? `Currently showing ${reports.length} loaded report records.` : ''}</p>
     </>}
   </div>;
 }

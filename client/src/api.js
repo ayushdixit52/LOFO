@@ -42,7 +42,7 @@ export function getErrorMessage(error) {
     return error.response?.data?.error?.message
       || (error.code === 'ECONNABORTED'
         ? 'The request took too long. Please try again.'
-        : 'We could not reach BLUE right now. Check your connection and try again.');
+        : 'We could not reach LOFO right now. Check your connection and try again.');
   }
   return error instanceof Error ? error.message : 'Something went wrong. Please try again.';
 }
